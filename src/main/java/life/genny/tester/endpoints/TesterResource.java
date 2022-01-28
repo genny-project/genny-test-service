@@ -74,16 +74,16 @@ public class TesterResource {
 		if(job == null)
 			return Response.status(Response.Status.NOT_FOUND).entity("Could not find job: " + jobCode).build();
 		
+		// Remove the token from the json before sending it off
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectNode node = null;
-		
 		try {
 			node = (ObjectNode)mapper.readTree(job.searchJSON);
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
-		
 		node.remove("token");
+		
 		return Response.status(Response.Status.OK).entity(node.toString()).build();
 	}
 	
@@ -111,7 +111,7 @@ public class TesterResource {
 		return Response.ok().entity(job.getCode()).build();
 	}
 	
-	@POST
+	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("multi/random/{count}")
 	public Response runMultipleRandomTests(@PathParam("count") final long count) {
@@ -126,7 +126,7 @@ public class TesterResource {
 		return Response.ok().entity(new GenericMessage<String>(jobCodes)).build();
 	}
 
-	@POST
+	@GET
 	@Path("single")
 	public Response runSingleTest() {
 		SearchEntity searchBE = new SearchEntity(SearchGenerator.SEARCH_PREFIX + "PERSONS", "Person Entities")
