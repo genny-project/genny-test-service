@@ -29,7 +29,21 @@ public class MetricResource {
 	private static final Logger log = Logger.getLogger(MetricResource.class);
 	
 	@Inject
+	TesterResource testerResource;
+	
+	@Inject
 	LoadTestJobs jobLoader;
+	
+	@GET
+	@Path("/{code}")
+	public Response getSingleTestMetrics(@PathParam("code") final String code) {
+		TestJob job = jobLoader.getJob(code);
+		if(job == null) {
+			return Response.status(Response.Status.NOT_FOUND).build();
+		}
+		
+		return Response.status(Response.Status.OK).entity(job.getDuration()).build();
+	}
 	
 	@GET
 	@Path("/summary")
@@ -104,21 +118,10 @@ public class MetricResource {
 	}
 	
 	@GET
-	@Path("/{code}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getSpecificJob(final @PathParam("code") String jobCode) {
-		TestJob job = jobLoader.getJob(jobCode);
-		if(job == null)
-			return Response.status(Response.Status.NOT_FOUND).entity("Could not find job: " + jobCode).build();
-		
-		return Response.status(Response.Status.OK).entity(job).build();
-	}
-	
-	@GET
 	@Path("/output/json/{code}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getSearchJson(final @PathParam("code") String jobCode) {
-		Response jobResponse = getSpecificJob(jobCode);
+		Response jobResponse = testerResource.getSpecificJob(jobCode);
 		if(jobResponse.getStatus() != Response.Status.OK.getStatusCode())
 			return jobResponse;
 		

@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -14,6 +15,10 @@ import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.quarkus.runtime.StartupEvent;
 import life.genny.qwandaq.entity.SearchEntity;
@@ -31,7 +36,6 @@ import life.genny.tester.utils.SearchGenerator;
 public class TesterResource {
 
 	private static final Logger log = Logger.getLogger(TesterResource.class);
-
 
 	@Inject
 	InternalProducer internalProducer;
@@ -60,14 +64,51 @@ public class TesterResource {
 	GennyToken serviceToken;
 
 	BaseEntityUtils beUtils;	
+
+	@GET
+	@Path("/{code}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getSpecificJob(final @PathParam("code") String jobCode) {
+		log.info("Looking for job: " + jobCode);
+		TestJob job = jobLoader.getJob(jobCode);
+		if(job == null)
+			return Response.status(Response.Status.NOT_FOUND).entity("Could not find job: " + jobCode).build();
+		
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode node = null;
+		
+		try {
+			node = (ObjectNode)mapper.readTree(job.searchJSON);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		
+		node.remove("token");
+		return Response.status(Response.Status.OK).entity(node.toString()).build();
+	}
 	
-	@POST
+	@GET
+	@Path("random/{count}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response runRandomConsecutiveTests(final @PathParam("count") long count) {
+		SearchEntity testSearch = SearchGenerator.generateRandomNameSearch();
+		String sourceCode = testSearch.getCode();
+		List<String> jobCodes = new ArrayList<String>();
+		for(long i = 0; i < count; i++) {
+			testSearch.setCode(sourceCode);
+			jobCodes.add(search(testSearch).getCode());
+		}
+		
+		return Response.status(Response.Status.OK).entity(jobCodes).build();
+	}
+	
+	@GET
 	@Path("random")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response runRandomTest() {
 		SearchEntity randomSearch = SearchGenerator.generateRandomNameSearch();
-		
-		search(randomSearch);
-		return Response.ok().build();
+		TestJob job = search(randomSearch);
+		return Response.ok().entity(job.getCode()).build();
 	}
 	
 	@POST
