@@ -1,6 +1,6 @@
 #!/bin/bash
 project=`echo "${PWD##*/}" | tr '[:upper:]' '[:lower:]'`
-project=fyodor
+project=genny-test-service
 file="src/main/resources/${project}-git.properties"
 org=gennyproject
 function prop() {

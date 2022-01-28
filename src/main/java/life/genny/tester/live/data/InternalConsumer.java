@@ -15,14 +15,15 @@ import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.jboss.logging.Logger;
 
 import io.quarkus.runtime.StartupEvent;
+import life.genny.qwandaq.CodedEntity;
 import life.genny.qwandaq.data.GennyCache;
-import life.genny.qwandaq.entity.SearchEntity;
+import life.genny.qwandaq.message.QBulkMessage;
+import life.genny.qwandaq.message.QDataBaseEntityMessage;
 import life.genny.qwandaq.message.QSearchMessage;
 import life.genny.qwandaq.models.GennyToken;
 import life.genny.qwandaq.test.LoadTestJobs;
 import life.genny.qwandaq.test.TestJob;
 import life.genny.qwandaq.utils.BaseEntityUtils;
-import life.genny.qwandaq.utils.CacheUtils;
 import life.genny.qwandaq.utils.KeycloakUtils;
 
 @ApplicationScoped
@@ -75,20 +76,42 @@ public class InternalConsumer {
 		log.info("[*] Finished Startup!");
     }
 
+    /**
+     * onConsume: set end Instant in relevant {@link TestJob}
+     * @param searchData - {@link QSearchMessage} payload
+     */
     @Incoming("search_data")
     public void getTestData(String searchData) {
-    	log.info("Received incoming test data... ");    	
+    	log.info("Received incoming test data... ");
 		log.debug(searchData);
 
 		JsonbConfig config = new JsonbConfig();
 		Jsonb jsonb = JsonbBuilder.create(config);
-		QSearchMessage msg = jsonb.fromJson(searchData, QSearchMessage.class);
+		QBulkMessage bulkMSG = jsonb.fromJson(searchData, QBulkMessage.class);
 		
 	
 		// Deserialize with null values to avoid deserialisation errors
-		GennyToken userToken = new GennyToken(msg.getToken());
-		SearchEntity searchBE = msg.getSearchEntity();
-		log.info("Token: " + msg.getToken());
-		log.info("Handling search " + searchBE.getCode());
+		GennyToken userToken = new GennyToken(bulkMSG.getToken());
+		CodedEntity searchBE = null;
+		for(QDataBaseEntityMessage dbMsg : bulkMSG.getMessages()) {
+			if(dbMsg.getItems().length == 1) {
+				if(dbMsg.getItems()[0].getCode().startsWith("SBE_")) {
+					searchBE = dbMsg.getItems()[0];
+				}
+			}
+		}
+		
+		if(searchBE == null) {
+			log.error("SearchEntity is null !");
+			return;
+		}
+		
+		String jobUuid = searchBE.getCode();
+		TestJob job = jobLoader.getJob(jobUuid);
+		if(job == null) {
+			log.error("Could not find job: " + jobUuid);
+			return;
+		}
+		job.setEnd(Instant.now());
     }
 }
