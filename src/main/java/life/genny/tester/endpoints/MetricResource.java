@@ -127,7 +127,7 @@ public class MetricResource {
 		
 		TestJob job = (TestJob)jobResponse.getEntity();
 		
-		return Response.status(Response.Status.OK).entity(job.searchJSON).build();
+		return Response.status(Response.Status.OK).entity(job.getSearchJSON()).build();
 	}
 	
 	@POST

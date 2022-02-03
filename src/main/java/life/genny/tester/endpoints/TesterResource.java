@@ -6,7 +6,6 @@ import java.util.List;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -78,7 +77,7 @@ public class TesterResource {
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectNode node = null;
 		try {
-			node = (ObjectNode)mapper.readTree(job.searchJSON);
+			node = (ObjectNode)mapper.readTree(job.getSearchJSON());
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		}
@@ -157,8 +156,8 @@ public class TesterResource {
     	newSearchMessage.setDestination("search_data");
     	newSearchMessage.setToken(serviceToken.getToken());
 
-		TestJob job = new TestJob(jobLoader, newSearchMessage);
-		internalProducer.getToSearchEvents().send(job.searchJSON);
+		TestJob job = new TestJob(jobLoader, newSearchMessage.getSearchEntity());
+		internalProducer.getToSearchEvents().send(job.getSearchJSON());
 		
 		return job;
 	}
