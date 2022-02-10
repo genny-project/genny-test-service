@@ -35,6 +35,12 @@ public class MetricResource {
 	LoadTestJobs jobLoader;
 	
 	@GET
+	@Path("/status")
+	public Response getStatus() {
+		return Response.ok().entity("Connected").build();
+	}
+
+	@GET
 	@Path("/{code}")
 	public Response getSingleTestMetrics(@PathParam("code") final String code) {
 		TestJob job = jobLoader.getJob(code);
