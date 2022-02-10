@@ -54,9 +54,9 @@ public class MetricResource {
 	@GET
 	@Path("/summary")
 	public Response getTestMetrics() {  
-		
+		log.info("Getting summary from: " + jobLoader.hashCode());
 		Collection<TestJob> jobs = jobLoader.getJobs().values();
-
+		log.info("Found " + jobs.size() + " jobs");
 		if(jobs.size() == 0) {
 			log.info("No Tests Run");
 			return Response.noContent().build();
@@ -72,7 +72,7 @@ public class MetricResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getTestMetricsBatch(String[] jobCodes) {
 		List<TestJob> jobs = new ArrayList<TestJob>();
-		
+
 		// Add each job in the job codes array to the list
 		for(String jobCode : jobCodes) {
 			TestJob job = jobLoader.getJob(jobCode);
