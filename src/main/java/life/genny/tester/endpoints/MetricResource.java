@@ -19,6 +19,10 @@ import javax.ws.rs.core.Response;
 
 import org.jboss.logging.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import life.genny.qwandaq.test.LoadTestJobs;
 import life.genny.qwandaq.test.TestJob;
 import life.genny.tester.models.TestMetrics;
@@ -127,13 +131,35 @@ public class MetricResource {
 	@Path("/output/json/{code}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getSearchJson(final @PathParam("code") String jobCode) {
-		Response jobResponse = testerResource.getSpecificJob(jobCode);
+		Response jobResponse = getSpecificJob(jobCode);
 		if(jobResponse.getStatus() != Response.Status.OK.getStatusCode())
 			return jobResponse;
 		
 		TestJob job = (TestJob)jobResponse.getEntity();
 		
 		return Response.status(Response.Status.OK).entity(job.getSearchJSON()).build();
+	}
+
+	@GET
+	@Path("/{code}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getSpecificJob(final @PathParam("code") String jobCode) {
+		log.info("Looking for job: " + jobCode);
+		TestJob job = jobLoader.getJob(jobCode);
+		if(job == null)
+			return Response.status(Response.Status.NOT_FOUND).entity("Could not find job: " + jobCode).build();
+		
+		// Remove the token from the json before sending it off
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode node = null;
+		try {
+			node = (ObjectNode)mapper.readTree(job.getSearchJSON());
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		node.remove("token");
+		
+		return Response.status(Response.Status.OK).entity(node.toString()).build();
 	}
 	
 	@POST

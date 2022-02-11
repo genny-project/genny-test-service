@@ -62,29 +62,7 @@ public class TesterResource {
 
 	GennyToken serviceToken;
 
-	BaseEntityUtils beUtils;	
-
-	@GET
-	@Path("/{code}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getSpecificJob(final @PathParam("code") String jobCode) {
-		log.info("Looking for job: " + jobCode);
-		TestJob job = jobLoader.getJob(jobCode);
-		if(job == null)
-			return Response.status(Response.Status.NOT_FOUND).entity("Could not find job: " + jobCode).build();
-		
-		// Remove the token from the json before sending it off
-		ObjectMapper mapper = new ObjectMapper();
-		ObjectNode node = null;
-		try {
-			node = (ObjectNode)mapper.readTree(job.getSearchJSON());
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		}
-		node.remove("token");
-		
-		return Response.status(Response.Status.OK).entity(node.toString()).build();
-	}
+	BaseEntityUtils beUtils;
 	
 	@GET
 	@Path("random/{count}")
@@ -107,7 +85,7 @@ public class TesterResource {
 	public Response runRandomTest() {
 		SearchEntity randomSearch = SearchGenerator.generateRandomNameSearch();
 		TestJob job = search(randomSearch);
-		log.info("Sending out: " + job.toString(true));
+		log.info("Sending out: " + job.getQSearchMessageJSON());
 		return Response.ok().entity(job.getCode()).build();
 	}
 	
@@ -156,16 +134,16 @@ public class TesterResource {
     	QSearchMessage newSearchMessage = new QSearchMessage(searchBE);
     	newSearchMessage.setDestination("search_data");
     	newSearchMessage.setToken(serviceToken.getToken());
-
-		TestJob job = new TestJob(jobLoader, newSearchMessage.getSearchEntity());
-		internalProducer.getToSearchEvents().send(job.getSearchJSON());
+		log.info("ServiceToken: " + serviceToken.getToken());
+		TestJob job = new TestJob(jobLoader, newSearchMessage);
+		internalProducer.getToSearchEvents().send(job.getQSearchMessageJSON());
 		
 		return job;
 	}
 
     void onStart(@Observes StartupEvent ev) {
 		serviceToken = new KeycloakUtils().getToken(baseKeycloakUrl, keycloakRealm, clientId, secret, serviceUsername, servicePassword, null);
-
+		log.info("Service Token: " + serviceToken.getToken());
 		// Init Utility Objects
 		beUtils = new BaseEntityUtils(serviceToken);
 
