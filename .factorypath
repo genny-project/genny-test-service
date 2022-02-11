@@ -1,5 +1,4 @@
 <factorypath>
-    <factorypathentry kind="VARJAR" id="M2_REPO/life/genny/qwandaq/9.12.0/qwandaq-9.12.0.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/io/quarkus/quarkus-hibernate-orm-rest-data-panache/2.5.4.Final/quarkus-hibernate-orm-rest-data-panache-2.5.4.Final.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/io/quarkus/quarkus-rest-data-panache/2.5.4.Final/quarkus-rest-data-panache-2.5.4.Final.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/io/quarkus/quarkus-panache-common/2.5.4.Final/quarkus-panache-common-2.5.4.Final.jar" enabled="true" runInBatchMode="false"/>

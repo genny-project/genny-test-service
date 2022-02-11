@@ -141,7 +141,7 @@ public class MetricResource {
 	}
 
 	@GET
-	@Path("/{code}")
+	@Path("/job/{code}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getSpecificJob(final @PathParam("code") String jobCode) {
 		log.info("Looking for job: " + jobCode);
