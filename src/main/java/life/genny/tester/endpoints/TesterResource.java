@@ -107,6 +107,7 @@ public class TesterResource {
 	public Response runRandomTest() {
 		SearchEntity randomSearch = SearchGenerator.generateRandomNameSearch();
 		TestJob job = search(randomSearch);
+		log.info("Sending out: " + job.toString(true));
 		return Response.ok().entity(job.getCode()).build();
 	}
 	
