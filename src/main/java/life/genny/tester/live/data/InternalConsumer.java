@@ -94,9 +94,9 @@ public class InternalConsumer {
 		GennyToken userToken = new GennyToken(bulkMSG.getToken());
 		CodedEntity searchBE = null;
 		for(QDataBaseEntityMessage dbMsg : bulkMSG.getMessages()) {
-			if(dbMsg.getItems().length == 1) {
-				if(dbMsg.getItems()[0].getCode().startsWith("SBE_")) {
-					searchBE = dbMsg.getItems()[0];
+			if(dbMsg.getItems().size() == 1) {
+				if(dbMsg.getItems().get(0).getCode().startsWith("SBE_")) {
+					searchBE = dbMsg.getItems().get(0);
 				}
 			}
 		}
