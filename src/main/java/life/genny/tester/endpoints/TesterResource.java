@@ -142,7 +142,7 @@ public class TesterResource {
 	}
 
     void onStart(@Observes StartupEvent ev) {
-		serviceToken = new KeycloakUtils().getToken(baseKeycloakUrl, keycloakRealm, clientId, secret, serviceUsername, servicePassword, null);
+		serviceToken = KeycloakUtils.getToken(baseKeycloakUrl, keycloakRealm, clientId, secret, serviceUsername, servicePassword);
 		log.info("Service Token: " + serviceToken.getToken());
 		// Init Utility Objects
 		beUtils = new BaseEntityUtils(serviceToken);
